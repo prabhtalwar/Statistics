@@ -1,0 +1,116 @@
+---
+title: "Lab - 2 Simple Linear Regression"
+author: "Prabh Talwar"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+
+```{r}
+num_obs = 30
+beta_0 = 1.4
+beta_1 = 3.1
+sigma = 1
+```
+
+```{r}
+# Generating x values from a uniform distribution
+
+set.seed(14)
+x_vals = runif(30, 0, 10)
+```
+
+
+```{r}
+# With Functions and Data Frames
+set.seed(14)
+sim_slr = function(x, beta_0 = 1.4, beta_1 = 3.1, sigma = 1) {
+  n = length(x)
+  epsilon = rnorm(n, mean = 0, sd = 4)
+  y = beta_0 + beta_1 * x + epsilon
+  data.frame(predictor = x, response = y)
+  }
+```
+
+```{r}
+# Using the function
+sim_data <- sim_slr(x = x_vals, beta_0 = 1.4, beta_1 = 3.1, sigma = 1)
+
+head(sim_data)
+```
+
+
+```{r}
+# Fitting the model
+sim_fit = lm(response ~ predictor, data = sim_data)
+coef(sim_fit)
+```
+
+With the simulation, the predicted model is almost equal to the actual model. The output of the model came out to be $y = 1.8 + 3.3x$. And our actual model is $y = 1.4 +3.1x$
+```{r}
+# Plotting the model
+
+plot(response ~ predictor, data = sim_data,
+     xlab = "Simulated Predictor Variable",
+     ylab = "Simulated Response Variable",
+     main = "Simulated Regression Data",
+     pch = 20,
+     cex = 2,
+     col = "grey")
+
+abline(sim_fit, lwd = 3, lty = 1, col = "darkorange")
+
+abline(beta_0, beta_1, lwd = 3, lty = 2, col = "dodgerblue")
+
+legend("topright", c("Estimate", "Truth"), 
+       lty = c(1, 2), 
+       lwd = 2,
+       col = c("darkorange", "dodgerblue"))
+
+```
+
+# Question 2
+
+```{r}
+library(datarium)
+library(tidyverse)
+
+marketing <- datarium::marketing
+
+head(marketing)
+
+```
+
+```{r}
+summary(marketing)
+```
+## Part (a)
+
+```{r}
+
+ggplot(data = marketing, mapping = aes(x = youtube, y = sales))+
+  geom_point()+
+  geom_smooth(method='lm', se = FALSE)
+  
+```
+
+```{r}
+SLR <- lm(sales ~ youtube, data = marketing)
+summary(SLR)
+```
+
+The linear equation: $y = 8.439112 + 0.047537x$. Residual standard error  is the standard deviation of residual errors. Larger the RSE is bad fit will be our model to our data. We need our RSE to be small, indicating that model fits well to our data and here, for this model RSE is 3.91.
+
+$R^2$ represents the proportion of variation explained by the regression. It ranges between 0 to 1 representing the variations in the data. Higher $R^2$  means the model fits best to the data and in our case our $R^2$ is 0.6119.
+
+F-statistics is of overall significance indicates whether your linear regression model provides a better fit to the data than a model that contains no independent variables. F-statistic: 312.1 for our model.
+
+```{r}
+confint(SLR, level = 0.95)
+```
+
