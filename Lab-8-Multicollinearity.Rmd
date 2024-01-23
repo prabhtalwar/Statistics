@@ -1,0 +1,77 @@
+---
+title: "Lab-8 Multicollinearity"
+author: "PrabhTalwar"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, error=FALSE, message=FALSE,warning=FALSE}
+library(readr)
+ftccigar <- read_csv("ftccigar.csv")
+ftccigar <- ftccigar[,-1]
+View(ftccigar)
+```
+## (a) Fit the model to the data. Is there evidence that tar content x1, is useful for predicting carbon monoxide content, y?
+
+
+```{r}
+ftc_model_1 <- lm(CO ~ TAR, data = ftccigar)
+summary(ftc_model_1)
+
+```
+The TAR content, is  useful for predicting carbon monoxide content as the Adjusted R-squared is also very high which is  0.9132.
+
+## (b) Fit the model to the data. Is there evidence that nicotine content x2, is useful for predicting carbon monoxide content, y?
+
+```{r}
+ftc_model_2 <- lm(CO ~ NICOTINE, data = ftccigar)
+summary(ftc_model_2)
+```
+The NICOTINE content, is  useful for predicting carbon monoxide content as the Adjusted R-squared is also  high which is  0.8512
+
+## (c) Fit the model to the data. Is there evidence that weight content x3, is useful for predicting carbon monoxide content, y?
+
+```{r}
+ftc_model_3 <- lm(CO ~ WEIGHT, data = ftccigar)
+summary(ftc_model_3)
+```
+The WEIGHT content, is not that useful for predicting carbon monoxide content as the Adjusted R-squared is also very low which is  0.1811
+
+```{r}
+coef(ftc_model_1)
+coef(ftc_model_2)
+coef(ftc_model_3)
+
+```
+
+However, the estimated coefficients are wildly different for all the three models.
+
+## (d) Fit the model as we did in the notes for all three variables, Compare the signs of beta1, beta2 and beta3 in the models of parts (a),(b) and (c) to the signs of the betas in the model with all three betas. Is the fact that the betas change dramatically when the independent variables are removed from the model an indication of a serious multicollinearity problem?
+
+
+```{r}
+pairs(ftccigar[,-1], col = "dodgerblue")
+round(cor(ftccigar[,-1]),2)
+```
+
+
+```{r}
+ftc_model <- lm(CO ~ ., data = ftccigar)
+summary(ftc_model)
+```
+
+One of the first things we notice that the F-test for the regression tells us that
+the regression is significant, however each individual predictor is not. Another interesting
+result is the opposite signs of the coefficients for NICOTINE and WEIGHT. This is a case of high correlation.
+
+Using the VIF, as it helps to understand how collinearity affects our regression estimates.
+
+```{r}
+faraway::vif(ftc_model)
+```
+
+If VIF is greater than 5 causes problems. Here, we see huge multicollinearity issue as TAR and NICOTINE have a VIF greater than 5.
