@@ -1,0 +1,252 @@
+---
+title: "Lab-5 Transformations"
+author: "PrabhTalwar"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+# Loading the data
+
+library(tidyverse)
+library(readr)
+library(MASS)
+library(faraway)
+
+lab_9_data <- read_csv("lab_9_data.csv")
+summary(lab_9_data)
+```
+
+
+## (a) Plot the points on a scatterplot. What type of relationship appears to exist between x and y?
+
+```{r}
+# Building a model
+model <- lm(Y ~ X, data = lab_9_data)
+summary(model)
+```
+
+```{r}
+# plotting the model
+
+plot(Y ~ X, data = lab_9_data, col = "black",pch = 20, cex = 1.5)
+
+abline(model, col = "darkorange", lwd = 2)
+```
+
+The above scatter plot shows a negative relationship between x and y. And adding the fitting line to the plot, we see that the linear relationship does not exist as it is not linear
+
+## (b) For each observation, calculate ln x and ln y. Plot the log transformed data points on a scatterplot. What type of relationship appears to exist between ln x and ln y?
+
+```{r}
+
+options(scipen = 1000)
+model_log <- lm(log(Y) ~ log(X), data = lab_9_data)
+summary(model_log)
+```
+
+```{r}
+plot(log(Y) ~ log(X), data = lab_9_data, col = "black", pch = 20, cex = 1.5)
+abline(model_log, col = "darkorange", lwd = 2)
+
+```
+The above scatter plot shows a negative relationship between ln(x) and ln(y). And adding the fitting line to the plot, we see that the linear relationship exist.
+
+##  Fit the transformed model to the data. Is the model adequate?
+
+The p value is less than the alpha value 0.05, which means our model is satistically significant.
+
+
+
+## (d) Produce the appropriate residual plot(s) and qq-plot to verify the conditions are satisfied. Are they? Comment. Use the plot model function.
+
+```{r}
+par(mfrow = c(1, 2))
+
+plot(fitted(model_log), resid(model_log), col = "black",
+pch = 20, xlab = "Fitted", ylab = "Residuals", main = "Fitted versus Residuals")
+
+abline(h = 0, col = "darkorange", lwd = 2)
+
+qqnorm(resid(model_log), main = "Normal Q-Q Plot", col = "black")
+qqline(resid(model_log), col = "dodgerblue", lwd = 2)
+
+```
+For the residual and fitted plot, at any fitted value, the mean of the residuals should be roughly 0. In this case,the linearity assumption is valid.
+
+At every fitted value, the spread of the residuals should be roughly the same. In this case, the constant variance assumption is voilated.
+
+Here we have a suspect Q-Q plot. We would probably not believe the errors follow a
+normal distribution.
+
+
+## (e) If the conditions are not satisfied, then you have the wrong model. Try the following models instead. Which is the best model based on performance and the conditions being met? (Use the plot(model) function.)
+
+### Model_1 
+
+```{r}
+# Building a model
+
+model_1 <- lm(Y ~ log(X), data = lab_9_data)
+summary(model_1)
+```
+Adjusted R-squared:  0.952
+
+```{r}
+# plotting the model
+
+plot(Y ~ log(X), data = lab_9_data, col = "black",pch = 20, cex = 1.5)
+
+abline(model_1, col = "darkorange", lwd = 2)
+```
+
+```{r}
+par(mfrow = c(1, 2))
+
+plot(fitted(model_1), resid(model_1), col = "black",
+pch = 20, xlab = "Fitted", ylab = "Residuals", main = "Fitted versus Residuals")
+
+abline(h = 0, col = "darkorange", lwd = 2)
+
+qqnorm(resid(model_1), main = "Normal Q-Q Plot", col = "black")
+qqline(resid(model_1), col = "dodgerblue", lwd = 2)
+
+```
+
+Using the log scale on x variable and plotting the data and adding the fitted line, the variance looks much better but not great.
+
+### Model_2 
+
+```{r}
+# Building a model
+
+model_2 <- lm(Y ~ I(1/X), data = lab_9_data)
+summary(model_2)
+```
+Adjusted R-squared:  0.9704 
+
+```{r}
+# plotting the model
+
+plot(Y ~ I(1/X), data = lab_9_data, col = "black",pch = 20, cex = 1.5)
+
+abline(model_2, col = "darkorange", lwd = 2)
+```
+
+```{r}
+par(mfrow = c(1, 2))
+
+plot(fitted(model_2), resid(model_2), col = "black",
+pch = 20, xlab = "Fitted", ylab = "Residuals", main = "Fitted versus Residuals")
+
+abline(h = 0, col = "darkorange", lwd = 2)
+
+qqnorm(resid(model_2), main = "Normal Q-Q Plot", col = "black")
+qqline(resid(model_2), col = "dodgerblue", lwd = 2)
+
+```
+
+
+### Model_3 
+
+```{r}
+# Building a model
+
+model_3 <- lm(log(Y) ~ X, data = lab_9_data)
+summary(model_3)
+```
+Adjusted R-squared:  0.9807 
+
+```{r}
+# plotting the model
+
+plot(log(Y) ~ X, data = lab_9_data, col = "black",pch = 20, cex = 1.5)
+
+abline(model_3, col = "darkorange", lwd = 2)
+```
+
+```{r}
+par(mfrow = c(1, 2))
+
+plot(fitted(model_3), resid(model_3), col = "black",
+pch = 20, xlab = "Fitted", ylab = "Residuals", main = "Fitted versus Residuals")
+
+abline(h = 0, col = "darkorange", lwd = 2)
+
+qqnorm(resid(model_3), main = "Normal Q-Q Plot", col = "black")
+qqline(resid(model_3), col = "dodgerblue", lwd = 2)
+
+```
+
+### Comparing Performances
+
+
+```{r}
+summary(model_1) # log transformation of x
+summary(model_2) # 1/x transformation
+summary(model_3) # log transformation of y
+
+```
+
+```{r}
+# Model 1
+sqrt(mean((lab_9_data$Y - fitted(model_1)) ^ 2))
+
+# Model 2
+sqrt(mean((lab_9_data$Y - fitted(model_2)) ^ 2))
+
+# Model 3
+sqrt(mean((lab_9_data$Y - exp(fitted(model_3))) ^ 2))
+
+```
+
+Looks the log transformation of Y is the better fit!
+
+
+## (f) Use the transformed model in part (e) to predict the value of y. 
+
+```{r}
+# Model 3
+
+Y = 4.97875 - 0.05476 * (lab_9_data$X)
+
+# Predicting the model where X = 30
+
+Y = 4.97875 - 0.05476 * (30)
+Y
+
+```
+
+## (g) Use the boxcox function (if applicable) to verify your choice of transform in part (e). If not applicable, just say "not applicable".
+
+```{r}
+model <- lm(Y ~ X, data = lab_9_data)
+model
+```
+
+```{r}
+boxcox(model, plotit = TRUE)
+
+```
+The above  function to find the best transformation of the form considered by the Box-Cox method. Here we see that lambda = 0. The verification of choice for transformation is correct.
+
+
+### Transforming back
+
+```{r}
+# Model 3
+
+Y = 4.97875 - 0.05476 * (lab_9_data$X)
+
+# Predicting the model where X = 30
+
+Y = 4.97875 - 0.05476 * (30)
+
+exp(Y)
+
+```
+

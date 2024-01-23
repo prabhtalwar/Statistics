@@ -1,0 +1,139 @@
+---
+title: "STAT-310-Lab 6-Outliers and Influential Points"
+author: "Prabh Talwar"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE, message=FALSE, error=FALSE}
+# loading libraries
+
+library(tidyverse)
+library(faraway)
+library(olsrr)
+```
+
+
+# Load the ’savings’ data set from the faraway package.
+ 
+```{r}
+savings <- faraway::savings
+
+View(savings)
+```
+ 
+## (a) Fit a model for the savings rate against all other variables.
+
+```{r}
+model <- lm(sr ~ ., data = savings)
+summary(model)
+```
+
+## (b) Remove any nonsignificant features and rerun the model with the remaining features.
+
+```{r}
+model_1 <- lm(sr ~ pop15 + ddpi, data = savings)
+summary(model_1)
+```
+## (c) Use the plot() function on the model in part (b) and comment on the four graphs with respect to what they’re used for.
+
+```{r}
+par(mfrow=c(1,2))    
+plot(model_1)
+
+```
+
+Plot 1: The Residual v/s Fitted plot is used to check the linearity and the constant variance assumption. Here, the mean of the residuals are centered at zero so the linearity assumption is valid. The spread of the residuals is same so the constant variance assumption is valid as well.
+
+Plot 2: The Q-Q plot is used to check the normality of the errors. Here, the points closely follows a straight line that suggests that the data comes from a normal distribution.
+
+Plot 3: The Scale Location plot shows if the residuals are spread equally along the range of predictors. It checks the assumption of constant variance. Here, the residuals appears to be spread randomly.
+
+Plot 4: The Residual v/s Leverage plot helps to find the influential points in a data set. If any data point falls outside of the cook's distance the it is considered to be an influential point. Here, observation "Libya"in the bottom right corner falls outside of the re dashed line and this indicates that it is a an influential point.
+
+## (d) Use the tools in this lab to identify any outliers or influential values. Justify your answers.
+
+
+###  Looking for Influential Values with DFBETAS
+
+```{r}
+dfbetas <- as.data.frame(dfbetas(model_1))
+
+```
+
+```{r}
+ols_plot_dfbetas(model_1)
+
+```
+From the first plot we can see that three observations(39,46,49) exceed the absolute value of the threshold of 0.28, in the second plot we can see that two observations(23,49) exceed the absolute value of the threshold and in the third plot we can see that two observations(46,49) exceed the absolute value of the threshold.
+
+###  Looking for Influential Values with DFFITS
+
+```{r}
+dffits <- as.data.frame(dffits(model_1))
+
+```
+
+```{r}
+ols_plot_dffits(model_1)
+
+```
+From the above plot we can see that three observations(23,46,49) exceed the absolute value of the threshold of 0.49.
+
+### Looking for Influential Values with Cook's Distance
+
+```{r}
+cooks.d <- as.data.frame(cooks.distance(model_1))
+
+```
+
+```{r}
+ols_plot_cooksd_chart(model_1)
+
+```
+From the above plot we can see that three observations(23,46,49) exceed the absolute value of the threshold of 0.08.
+
+From the above tools, we can notice that the three values are shown continuously that are 23, 46 and 49.
+
+## Detecting Outliers
+
+###  Studentized Residuals vs Leverage Plot
+
+
+```{r}
+ols_plot_resid_lev(model_1)
+
+```
+From the above plot we can see that three observations(47,49) exceed the absolute value of the threshold of 0.12. These two observations seem to be potential leverage points.
+
+## (e) Remove any outliers or influential values from your data and rerun the model in part (b).
+
+Removing the observations 23,46,49.
+
+```{r}
+savings_new <- savings[-23,-46,-49]
+```
+
+```{r}
+model_new <- lm(sr ~ ., data = savings_new)
+summary(model_new)
+```
+## (f) Use the plot() function again on the model and comment on the four graphs.
+
+```{r}
+par(mfrow=c(1,2))    
+plot(model_new)
+```
+
+Plot 1: The Residual v/s Fitted plot is used to check the linearity and the constant variance assumption. Here, the mean of the residuals are centered at zero so the linearity assumption is valid. The spread of the residuals is same so the constant variance assumption is valid as well.
+
+Plot 2: The Q-Q plot is used to check the normality of the errors. Here, the points closely follows a straight line that suggests that the data comes from a normal distribution.
+
+Plot 3: The Scale Location plot shows if the residuals are spread equally along the range of predictors. It checks the assumption of constant variance. Here, the residuals appears to be spread randomly, however, the line is bending downwards here.
+
+Plot 4: The Residual v/s Leverage plot helps to find the influential points in a data set. If any data point falls outside of the cook's distance the it is considered to be an influential point. all the observations are inside of the  dashed line and this indicates that now there are no influential points.
+
