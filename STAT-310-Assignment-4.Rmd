@@ -1,0 +1,126 @@
+---
+title: "STAT 310 Lab 4 Residual Analysis"
+author: "PrabhTalwar"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message=FALSE, error= FALSE, warning=FALSE}
+library(tidyverse)
+library(lmtest)
+library(car)
+library(MASS)
+```
+
+
+# Generate the following data and fit the given model.
+
+```{r}
+set.seed(0)
+
+#define response variable
+y <- c(1:1000)
+
+#define three predictor variables
+x1 <- c(1:1000)*runif(n=1000)
+x2 <- (c(1:1000)*rnorm(n=1000))^2
+x3 <- (c(1:1000)*rnorm(n=1000))^3
+
+#fit multiple linear regression model
+model <- lm(y~x1+x2+x3)
+```
+
+# Check for linearity heteroscedasticity with a standard residual plot.
+
+```{r}
+plot(fitted(model), resid(model), col = "black", pch = 20,
+xlab = "Fitted", ylab = "Residuals", main = "Data from Model 1")
+abline(h = 0, col = "darkorange", lwd = 2)
+
+```
+On the fitted versus residuals plot, For the fitted values, the residuals are centered at 0.The linearity assumption is not violated. However, for larger fitted values, the spread of the residuals is large. The constant variance assumption is violated here.
+
+
+# . Check for normality of the residuals.
+
+```{r}
+hist(resid(model),
+xlab = "Residuals",
+main = "Histogram of Residuals, fit_3",
+col = "darkorange",
+border = "dodgerblue",
+breaks = 20)
+
+```
+
+```{r}
+qqnorm(resid(model), main = "Normal Q-Q Plot, fit_1", col = "darkgrey")
+qqline(resid(model), col = "dodgerblue", lwd = 2)
+
+```
+we have a  Q-Q plot here. We can say that the errors follow a normal distribution.
+
+
+# Perform relevant statistical tests to verify your observations in the previous parts.
+
+## Breusch-Pagan Test
+
+There are many tests for constant variance, but here we will perform the Breusch-Pagan Test.
+
+H0: Homoscedasticity. The errors have constant variance about the true model.
+HA: Heteroscedasticity. The errors have non-constant variance about the true model.
+
+```{r}
+bptest(model)
+```
+Here, we see a small p-value, so we have enough evidence to reject the null hypothesis. The constant variance assumption is violated. This matches our findings with a fitted versus residuals plot.
+
+##  Shapiro-Wilk Test
+
+The test is available to check the normality of our errors
+
+H0: The data is sampled from a normal distribution
+HA: The data is not sampled from a normal distribution
+
+```{r}
+shapiro.test(resid(model))
+```
+Here, we see a small p-value, so we have enough evidence to reject the null hypothesis. A small p-value indicates we believe there is only a small probability the data could have been sampled from a normal distribution.
+
+# Use partial regression plots to check for heteroscedasticity and influential points.
+
+```{r}
+model <- lm(y~x1+x2+x3)
+summary(model)
+```
+
+```{r}
+#  generating the AV plots
+
+avPlots(model)
+```
+here, the importance of the variables in the model is indicated by the steepness of the slopes. Variable x3 has less steepness than x1 and x2. We can also see the potential influential points clearly.  Observations 961 and 972 stand out in all the three plots.
+
+
+# Use partial residual plots to check for linearity among each variable. (Bonus) Can you recommend any transformations?
+
+The partial residual plots are most commonly used to identify the nature of the relationship between Y and Xi
+
+```{r}
+par(mfrow=c(2,2))
+termplot(model, partial.resid=TRUE, col.res = "black", smooth=panel.smooth)
+```
+Here, x1 shows the linearity trend among the other variables in the data. 
+
+Box-Cox Transformations will check whether we need to transform the data or not. 
+
+
+```{r}
+boxcox(model, plotit = TRUE, lambda = seq(0.5, 1.5, by = 0.1))
+```
+
+The lambda comes out to be around 0.7. To transform the data we might use the square root.
